@@ -1,6 +1,6 @@
 import * as THREE from "../lib/three.js/build/three.module.js";
 import Segment from "./Segment.module.js";
-import {basisMatrix} from "./util.module.js";
+import { randomXzVector } from "./util.module.js";
 
 const strokeSegmentLength = 0.05;
 
@@ -52,26 +52,10 @@ class Branch {
     this.pos.addScaledVector(dx, dt);
 
     if (Math.random() < 0.05) {
-      console.log("bronch");
-      // random unit vector in XZ plane
-      const axis2dAngle = Math.random() * Math.PI * 2;
-      const axis = new THREE.Vector3(Math.cos(axis2dAngle), 0, Math.sin(axis2dAngle));
-
-      const branchRot = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationAxis(axis, Math.random() - 0.5));
-      const rot = this.rot.clone().multiply(branchRot);
-      branches.push(
-        Branch.fromParent(this, {
-          rot,
-        })
-      );
+      branches.push(this._createBranch());
     }
 
-    // this.rot.multiply(
-    //   new THREE.Matrix4().makeRotationZ(-0.005 + Math.random() * 0.01)
-    // );
-    // this.rot.multiply(
-    //   new THREE.Matrix4().makeRotationX(-0.005 + Math.random() * 0.01)
-    // );
+    this._wiggle();
 
     const distance = Math.sqrt(
       (this.lastStrokePos.x - this.pos.x) ** 2 +
@@ -81,16 +65,32 @@ class Branch {
     if (distance > strokeSegmentLength) {
       segments.push(this._stroke(distance));
     }
-    // this.thickness *= 0.995;
+    this.thickness *= 0.99;
     if (this.thickness > 0.1) {
       branches.push(this);
     }
     return branches;
   }
 
+  _createBranch() {
+    const axis = randomXzVector();
+    const branchRot = new THREE.Matrix3().setFromMatrix4(
+      new THREE.Matrix4().makeRotationAxis(axis, Math.random() - 0.5)
+    );
+    const rot = this.rot.clone().multiply(branchRot);
+    return Branch.fromParent(this, {
+      rot,
+    });
+  }
+
+  _wiggle() {
+    const axis = randomXzVector();
+    const angle = (Math.random() * 2 - 1) * 0.1;
+    const rot = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationAxis(axis, angle));
+    this.rot.multiply(rot);
+  }
+
   _stroke(length) {
-    console.log("emitting stroke");
-    // const rot = basisMatrix(this.lastSegment.rot).invert().multiply(this.rot);
     const parentRot = this.lastSegment?.rotWorld.clone();
     const relativeRot = parentRot.invert().multiply(this.rot);
     const segment = Segment.fromParent(this.lastSegment, {

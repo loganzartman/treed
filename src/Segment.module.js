@@ -21,13 +21,12 @@ class Segment {
     this.pos = pos;
     this.parentSegment = parentSegment;
     this.parentObject = parentObject;
-    console.log(thickness);
 
     this.container = new THREE.Group();
     const mat = new THREE.MeshNormalMaterial();
     mat.wireframe = false;
     this.mesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.5, 1, 16).translate(0, 0.5, 0),
+      new THREE.CylinderGeometry(0.5, 0.5, 1, 7).translate(0, 0.5, 0),
       // new THREE.MeshBasicMaterial({ color: 0x007000 })
       mat
     );
