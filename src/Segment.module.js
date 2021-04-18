@@ -19,6 +19,7 @@ class Segment {
     this.pos = pos;
     this.parentSegment = parentSegment;
     this.parentObject = parentObject;
+    console.log(thickness);
 
     this.container = new THREE.Group();
     const mat = new THREE.MeshNormalMaterial();
