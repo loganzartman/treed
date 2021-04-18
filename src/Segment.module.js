@@ -22,7 +22,7 @@ class Segment {
 
     this.container = new THREE.Group();
     const mat = new THREE.MeshNormalMaterial();
-    mat.wireframe = true;
+    mat.wireframe = false;
     this.mesh = new THREE.Mesh(
       new THREE.BoxGeometry().translate(0, 0.5, 0),
       // new THREE.MeshBasicMaterial({ color: 0x007000 })
