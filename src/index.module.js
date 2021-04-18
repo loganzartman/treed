@@ -6,6 +6,7 @@ import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPa
 import { SAOPass } from "../lib/three.js/examples/jsm/postprocessing/SAOPass.js";
 import { SSAOPass } from "../lib/three.js/examples/jsm/postprocessing/SSAOPass.js";
 import Segment from "./Segment.module.js";
+import Branch from "./Branch.module.js";
 
 const epsilon = 1e-3;
 const gui = new Dat.GUI();
@@ -67,36 +68,19 @@ const onLoad = () => {
   //   ).translateY(0.5 + epsilon)
   // );
 
-  const root = new Segment({
-    scene,
-    dir: new THREE.Quaternion(),
-    length: 1,
-    thickness: 1,
-  });
-  const kid = Segment.fromParent(root, {
-    dir: new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, 0, 0)),
-    length: 0.5,
-    thickness: 0.5,
-  });
-  const kid2 = Segment.fromParent(kid, {
-    dir: new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, 0, 0)),
-    length: 0.5,
-    thickness: 0.5,
-  });
-  Segment.fromParent(kid2, {
-    dir: new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, 0, 0)),
-    length: 0.5,
-    thickness: 0.5,
-  });
-  Segment.fromParent(root, {
-    dir: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.2, 0, 0.2)),
-    length: 0.7,
-    thickness: 0.4,
-  });
+  const root = new Branch({ scene });
   scene.add(root.parentObject);
+  let branches = [root];
+  let segments = [];
 
+  let prevTime = Date.now();
   const frame = () => {
+    const dt = (Date.now() - prevTime) / 1000;
+    prevTime = Date.now();
+
     window.requestAnimationFrame(frame);
+    if (segments.length < 100)
+      branches = branches.flatMap((branch) => branch.grow(segments, dt));
     controls.update();
     composer.render();
   };
