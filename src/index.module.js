@@ -7,6 +7,7 @@ import { SAOPass } from "../lib/three.js/examples/jsm/postprocessing/SAOPass.js"
 import { SSAOPass } from "../lib/three.js/examples/jsm/postprocessing/SSAOPass.js";
 import Segment from "./Segment.module.js";
 import Branch from "./Branch.module.js";
+import {toVector4, toVector3} from './util.module.js';
 
 const epsilon = 1e-3;
 const gui = new Dat.GUI();
@@ -16,6 +17,10 @@ let camera;
 let composer;
 
 const onLoad = () => {
+  const x = new THREE.Vector4(1,2,3,4);
+  const y = toVector3(x);
+  const z = toVector4(y, 5);
+  console.log(x, y, z);
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xcccccc);
 
@@ -75,11 +80,11 @@ const onLoad = () => {
 
   let prevTime = Date.now();
   const frame = () => {
-    const dt = (Date.now() - prevTime) / 1000;
+    const dt = (Date.now() - prevTime) / 1000 * 3;
     prevTime = Date.now();
 
     window.requestAnimationFrame(frame);
-    if (segments.length < 200)
+    if (segments.length < 2000)
       branches = branches.flatMap((branch) => branch.grow(segments, dt));
     controls.update();
     composer.render();

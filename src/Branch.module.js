@@ -2,23 +2,23 @@ import * as THREE from "../lib/three.js/build/three.module.js";
 import Segment from "./Segment.module.js";
 import {basisMatrix} from "./util.module.js";
 
-const strokeSegmentLength = 0.2;
+const strokeSegmentLength = 0.05;
 
 class Branch {
   constructor({
     scene,
     parentBranch = null,
     parentSegment = null,
-    pos = new THREE.Vector4(),
-    dir = new THREE.Matrix4(),
+    pos = new THREE.Vector3(),
+    rot = new THREE.Matrix3(),
     thickness = 1,
   }) {
     this.scene = scene;
     this.parentBranch = parentBranch;
     this.parentSegment =
-      parentSegment ?? new Segment({ scene, dir, length: 0, thickness });
+      parentSegment ?? new Segment({ scene, rot, length: 0, thickness });
     this.pos = pos;
-    this.dir = dir;
+    this.rot = rot;
     this.thickness = thickness;
 
     this.lastSegment = this.parentSegment;
@@ -32,7 +32,7 @@ class Branch {
   static fromParent(branch, params) {
     const {
       pos = branch.pos.clone(),
-      dir = branch.dir.clone(),
+      rot = branch.rot.clone(),
       thickness = branch.thickness,
     } = params;
     return new Branch({
@@ -40,35 +40,38 @@ class Branch {
       parentBranch: branch,
       parentSegment: branch.lastSegment,
       pos,
-      dir,
+      rot,
       thickness,
     });
   }
 
   grow(segments, dt = 1) {
-    const branches = [this];
+    const branches = [];
 
-    const dx = new THREE.Vector4(0, 1, 0, 0).applyMatrix4(this.dir);
+    const dx = new THREE.Vector3(0, 1, 0).applyMatrix3(this.rot);
     this.pos.addScaledVector(dx, dt);
 
-    if (Math.random() < 0.01) {
+    if (Math.random() < 0.05) {
       console.log("bronch");
-      const axis = new THREE.Vector3(Math.random(), 0, Math.random());
-      const rot = new THREE.Matrix4().makeRotationAxis(axis, Math.random() - 0.5);
-      const dir = this.dir.clone().multiply(rot);
+      // random unit vector in XZ plane
+      const axis2dAngle = Math.random() * Math.PI * 2;
+      const axis = new THREE.Vector3(Math.cos(axis2dAngle), 0, Math.sin(axis2dAngle));
+
+      const branchRot = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationAxis(axis, Math.random() - 0.5));
+      const rot = this.rot.clone().multiply(branchRot);
       branches.push(
         Branch.fromParent(this, {
-          dir,
+          rot,
         })
       );
     }
 
-    this.dir.multiply(
-      new THREE.Matrix4().makeRotationZ(-0.005 + Math.random() * 0.01)
-    );
-    this.dir.multiply(
-      new THREE.Matrix4().makeRotationX(-0.005 + Math.random() * 0.01)
-    );
+    // this.rot.multiply(
+    //   new THREE.Matrix4().makeRotationZ(-0.005 + Math.random() * 0.01)
+    // );
+    // this.rot.multiply(
+    //   new THREE.Matrix4().makeRotationX(-0.005 + Math.random() * 0.01)
+    // );
 
     const distance = Math.sqrt(
       (this.lastStrokePos.x - this.pos.x) ** 2 +
@@ -78,14 +81,20 @@ class Branch {
     if (distance > strokeSegmentLength) {
       segments.push(this._stroke(distance));
     }
+    // this.thickness *= 0.995;
+    if (this.thickness > 0.1) {
+      branches.push(this);
+    }
     return branches;
   }
 
   _stroke(length) {
     console.log("emitting stroke");
-    // const dir = basisMatrix(this.lastSegment.dir).invert().multiply(this.dir);
+    // const rot = basisMatrix(this.lastSegment.rot).invert().multiply(this.rot);
+    const parentRot = this.lastSegment?.rotWorld.clone();
+    const relativeRot = parentRot.invert().multiply(this.rot);
     const segment = Segment.fromParent(this.lastSegment, {
-      dir: this.dir,
+      rot: relativeRot,
       length,
       thickness: this.thickness,
     });

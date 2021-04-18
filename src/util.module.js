@@ -7,3 +7,8 @@ export const basisMatrix = (up4) => {
   const b = new THREE.Vector3().crossVectors(up3, a);
   return new THREE.Matrix4().makeBasis(a, up3, b);
 };
+
+export const toVector4 = (vector3, w) =>
+  new THREE.Vector4().copy(vector3).setComponent(3, w);
+
+export const toVector3 = (vector4) => new THREE.Vector3().copy(vector4);

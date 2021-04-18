@@ -1,21 +1,23 @@
 import * as THREE from "../lib/three.js/build/three.module.js";
 
-const thicknessScale = 0.1;
+const thicknessScale = 0.2;
 
 class Segment {
   constructor({
     scene,
-    dir,
+    rot,
     length,
     thickness,
-    pos = new THREE.Vector4(),
+    rotWorld = new THREE.Matrix3(),
+    pos = new THREE.Vector3(),
     parentSegment = null,
     parentObject = new THREE.Group(),
   }) {
     this.scene = scene;
-    this.dir = dir;
+    this.rot = rot;
     this.length = length;
     this.thickness = thickness;
+    this.rotWorld = rotWorld;
     this.pos = pos;
     this.parentSegment = parentSegment;
     this.parentObject = parentObject;
@@ -25,7 +27,7 @@ class Segment {
     const mat = new THREE.MeshNormalMaterial();
     mat.wireframe = false;
     this.mesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.5, 1, 32).translate(0, 0.5, 0),
+      new THREE.CylinderGeometry(0.5, 0.5, 1, 16).translate(0, 0.5, 0),
       // new THREE.MeshBasicMaterial({ color: 0x007000 })
       mat
     );
@@ -34,13 +36,14 @@ class Segment {
     this.updateTransform();
   }
 
-  static fromParent(segment, { dir, length, thickness }) {
+  static fromParent(segment, { rot, length, thickness }) {
     return new Segment({
       scene: segment.scene,
-      dir,
+      rot,
+      rotWorld: segment.rotWorld.clone().multiply(rot),
       length,
       thickness,
-      pos: new THREE.Vector4(0, segment.length, 0, 1),
+      pos: new THREE.Vector3(0, segment.length, 0),
       parentSegment: segment,
       parentObject: segment.container,
     });
@@ -48,7 +51,7 @@ class Segment {
 
   updateTransform() {
     this.container.matrix.identity();
-    this.container.applyMatrix4(this.dir);
+    this.container.applyMatrix4(new THREE.Matrix4().setFromMatrix3(this.rot));
     this.container.position.copy(this.pos);
     this.container.matrixWorldNeedsUpdate = true;
 
