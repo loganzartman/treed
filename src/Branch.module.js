@@ -43,6 +43,12 @@ class Branch {
     const dx = new THREE.Vector4(0, 1, 0, 0).applyMatrix4(this.dir);
     this.pos.addScaledVector(dx, dt);
 
+    if (Math.random() < 0.01) {
+      const rot = new THREE.Matrix4().setRotationX(Math.random()-0.5);
+      const dir = this.dir.clone().multiply(rot);
+      branches.push(Branch.from({scene: this.scene, parentBranch: this, pos: this.pos.clone(), dir}));
+    }
+
     this.dir.multiply(new THREE.Matrix4().makeRotationZ(-0.005 + Math.random() * 0.01));
     this.dir.multiply(new THREE.Matrix4().makeRotationX(-0.005 + Math.random() * 0.01));
 
