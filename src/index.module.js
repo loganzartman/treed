@@ -28,7 +28,7 @@ const onLoad = () => {
   camera = new THREE.PerspectiveCamera(
     50,
     window.innerWidth / window.innerHeight,
-    1,
+    0.1,
     1000
   );
   camera.position.set(10, 7, 0);
@@ -79,7 +79,7 @@ const onLoad = () => {
     prevTime = Date.now();
 
     window.requestAnimationFrame(frame);
-    if (segments.length < 100)
+    if (segments.length < 200)
       branches = branches.flatMap((branch) => branch.grow(segments, dt));
     controls.update();
     composer.render();

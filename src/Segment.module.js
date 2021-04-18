@@ -25,7 +25,7 @@ class Segment {
     const mat = new THREE.MeshNormalMaterial();
     mat.wireframe = false;
     this.mesh = new THREE.Mesh(
-      new THREE.BoxGeometry().translate(0, 0.5, 0),
+      new THREE.CylinderGeometry(0.5, 0.5, 1, 32).translate(0, 0.5, 0),
       // new THREE.MeshBasicMaterial({ color: 0x007000 })
       mat
     );
@@ -48,8 +48,8 @@ class Segment {
 
   updateTransform() {
     this.container.matrix.identity();
-    this.container.position.copy(this.pos);
     this.container.applyMatrix4(this.dir);
+    this.container.position.copy(this.pos);
     this.container.matrixWorldNeedsUpdate = true;
 
     this.mesh.matrix.identity();

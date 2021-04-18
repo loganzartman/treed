@@ -2,7 +2,7 @@ import * as THREE from "../lib/three.js/build/three.module.js";
 import Segment from "./Segment.module.js";
 import {basisMatrix} from "./util.module.js";
 
-const strokeSegmentLength = 0.1;
+const strokeSegmentLength = 0.2;
 
 class Branch {
   constructor({
