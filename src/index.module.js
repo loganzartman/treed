@@ -35,6 +35,7 @@ const onLoad = () => {
 
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new SAOPass(scene, camera, false, false));
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
