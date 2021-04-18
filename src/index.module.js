@@ -40,6 +40,7 @@ const onLoad = () => {
   controls.target.set(0, 0, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.1;
+  controls.enablePan = false;
 
   // skybox
   scene.add(
@@ -78,11 +79,22 @@ const onLoad = () => {
     window.requestAnimationFrame(frame);
     const dt = (Date.now() - prevTime) / 1000 * 3;
     prevTime = Date.now();
-    
+
     // grow tree
     if (segments.length < 2000)
       branches = branches.flatMap((branch) => branch.grow(segments, dt));
     
+    const cameraTargetY =
+      segments.reduce(
+        (acc, segment) =>
+          Math.max(
+            acc,
+            new THREE.Vector3().setFromMatrixPosition(segment.mesh.matrixWorld).y
+          ),
+        0
+      ) / 2;
+    controls.target.y = cameraTargetY;
+
     controls.update();
     composer.render();
   };
