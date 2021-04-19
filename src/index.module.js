@@ -69,27 +69,43 @@ const onLoad = () => {
   //   ).translateY(0.5 + epsilon)
   // );
 
-  const root = new Branch({ scene });
-  scene.add(root.parentObject);
-  let branches = [root];
-  let segments = [];
+  let root, branches, segments;
+  const reset = () => {
+    if (root) scene.remove(root.parentObject);
+    root = new Branch({ scene });
+    scene.add(root.parentObject);
+    branches = [root];
+    segments = [];
+  };
+  reset();
+
+  window.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key === " ") {
+        reset();
+      }
+    },
+    false
+  );
 
   let prevTime = Date.now();
   const frame = () => {
     window.requestAnimationFrame(frame);
-    const dt = (Date.now() - prevTime) / 1000 * 3;
+    const dt = ((Date.now() - prevTime) / 1000) * 3;
     prevTime = Date.now();
 
     // grow tree
     if (segments.length < 2000)
       branches = branches.flatMap((branch) => branch.grow(segments, dt));
-    
+
     const cameraTargetY =
       segments.reduce(
         (acc, segment) =>
           Math.max(
             acc,
-            new THREE.Vector3().setFromMatrixPosition(segment.mesh.matrixWorld).y
+            new THREE.Vector3().setFromMatrixPosition(segment.mesh.matrixWorld)
+              .y
           ),
         0
       ) / 2;
@@ -108,5 +124,5 @@ const onResize = () => {
   composer.setSize(window.innerWidth, window.innerHeight);
 };
 
-window.addEventListener("load", () => onLoad(), false);
-window.addEventListener("resize", () => onResize(), false);
+window.addEventListener("load", onLoad, false);
+window.addEventListener("resize", onResize, false);

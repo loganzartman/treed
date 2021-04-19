@@ -23,13 +23,13 @@ class Segment {
     this.parentObject = parentObject;
 
     this.container = new THREE.Group();
-    const mat = new THREE.MeshNormalMaterial();
-    mat.wireframe = false;
-    this.mesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.5, 1, 7).translate(0, 0.5, 0),
-      // new THREE.MeshBasicMaterial({ color: 0x007000 })
-      mat
+    this.geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 7).translate(
+      0,
+      0.5,
+      0
     );
+    this.material = new THREE.MeshNormalMaterial();
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.container.add(this.mesh);
     this.parentObject.add(this.container);
     this.updateTransform();
@@ -46,6 +46,13 @@ class Segment {
       parentSegment: segment,
       parentObject: segment.container,
     });
+  }
+
+  destroy() {
+    this.geometry.dispose();
+    this.material.dispose();
+    this.mesh.dispose();
+    this.container.dispose();
   }
 
   updateTransform() {

@@ -65,7 +65,7 @@ class Branch {
     if (distance > strokeSegmentLength) {
       segments.push(this._stroke(distance));
     }
-    this.thickness *= 0.99;
+    this.thickness -= 0.2 * dt;
     if (this.thickness > 0.1) {
       branches.push(this);
     }
