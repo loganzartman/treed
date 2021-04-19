@@ -20,7 +20,6 @@ class Segment {
     this.pos = pos;
     this.parentSegment = parentSegment;
 
-    this.children = [];
     this.meshLocalMatrix = new THREE.Matrix4(); // transform of mesh relative to localMatrix
     this.localMatrix = new THREE.Matrix4(); // transform of segment relative to parent
     this.worldMatrix = new THREE.Matrix4(); // transform of segment relative to world
