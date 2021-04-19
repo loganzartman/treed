@@ -114,7 +114,7 @@ const onLoad = () => {
           ),
         0
       ) / 2;
-    controls.target.y = cameraTargetY;
+    controls.target.y = controls.target.y * 0.9 + cameraTargetY * 0.1;
 
     controls.update();
     composer.render();
