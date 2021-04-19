@@ -8,8 +8,8 @@ import { SSAOPass } from "../lib/three.js/examples/jsm/postprocessing/SSAOPass.j
 import Segment from "./Segment.module.js";
 import Branch from "./Branch.module.js";
 
-const maxSegments = 2000;
-const epsilon = 1e-3;
+const maxSegments = 10000;
+const maxLeaves = 10000;
 const gui = new Dat.GUI();
 let scene;
 let renderer;
@@ -47,36 +47,67 @@ const onLoad = () => {
   scene.add(
     new THREE.Mesh(
       new THREE.SphereGeometry(100).scale(1, 1, 1),
-      // new THREE.MeshBasicMaterial({ color: 0x2060a0, side: THREE.FrontSide })
-      new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: 0xB2C8DB, side: THREE.DoubleSide })
     )
   );
 
   // floor
   scene.add(
     new THREE.Mesh(
-      new THREE.PlaneGeometry(5, 5).rotateX(-Math.PI / 2),
+      new THREE.CircleGeometry(2.5, 15).rotateX(-Math.PI / 2),
       // new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide })
-      new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
+      new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, color: 0x7C9C75, roughness: 1 })
     )
   );
 
+  const sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  scene.add(sunLight);
+  const groundLight = new THREE.DirectionalLight(0x7C9C75, 0.1);
+  groundLight.position.y = -1;
+  scene.add(groundLight);
+  const ambientLight = new THREE.AmbientLight(0xBFCEDB, 0.02);
+  scene.add(ambientLight);
+
   // tree segment instances
-  const segmentGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 7).translate(
+  const segmentGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 7, 1, true).translate(
     0,
     0.5,
     0
   );
   segmentGeometry.computeVertexNormals();
-  const segmentMaterial = new THREE.MeshNormalMaterial();
-  const segmentMesh = new THREE.InstancedMesh(segmentGeometry, segmentMaterial, maxSegments);
+  const segmentMaterial = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
+    color: 0xA38F67,
+    roughness: 0.5,
+  });
+  const segmentMesh = new THREE.InstancedMesh(
+    segmentGeometry,
+    segmentMaterial,
+    maxSegments
+  );
   scene.add(segmentMesh);
 
-  let root, branches, segments;
+  // leaf instances
+  const leafGeometry = new THREE.CircleGeometry(0.5, 7);
+  leafGeometry.computeVertexNormals();
+  const leafMaterial = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
+    color: 0x536615,
+    roughness: 0.2,
+  });
+  const leafMesh = new THREE.InstancedMesh(
+    leafGeometry,
+    leafMaterial,
+    maxLeaves
+  );
+  scene.add(leafMesh);
+
+  let root, branches, segments, leaves;
   const reset = () => {
     root = new Branch({ scene });
     branches = [root];
     segments = [];
+    leaves = [];
   };
   reset();
 
@@ -98,19 +129,22 @@ const onLoad = () => {
 
     // grow tree
     if (segments.length < maxSegments)
-      branches = branches.flatMap((branch) => branch.grow(segments, dt));
+      branches = branches.flatMap((branch) => branch.grow(segments, leaves, dt));
 
     segments.forEach((segment, i) => segment.updateTransform(segmentMesh, i));
     segmentMesh.count = segments.length;
     segmentMesh.instanceMatrix.needsUpdate = true;
+
+    leaves.forEach((leaves, i) => leaves.updateTransform(leafMesh, i));
+    leafMesh.count = leaves.length;
+    leafMesh.instanceMatrix.needsUpdate = true;
 
     const cameraTargetY =
       segments.reduce(
         (acc, segment) =>
           Math.max(
             acc,
-            new THREE.Vector3().setFromMatrixPosition(segment.meshWorldMatrix)
-              .y
+            new THREE.Vector3().setFromMatrixPosition(segment.meshWorldMatrix).y
           ),
         0
       ) / 2;

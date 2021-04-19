@@ -24,7 +24,6 @@ class Segment {
     this.localMatrix = new THREE.Matrix4(); // transform of segment relative to parent
     this.worldMatrix = new THREE.Matrix4(); // transform of segment relative to world
     this.meshWorldMatrix = new THREE.Matrix4(); // transform of mesh relative to world
-    this._updateLocalMatrices();
   }
 
   static fromParent(segment, { rot, length, thickness }) {
@@ -43,8 +42,15 @@ class Segment {
   destroy() {}
 
   updateTransform(instancedMesh, i) {
-    this._updateLocalMatrices();
+    // update local matrices
+    const t = this.thickness * thicknessScale;
+    this.meshLocalMatrix.makeScale(t, this.length, t);
 
+    this.localMatrix.identity();
+    this.localMatrix.setFromMatrix3(this.rot);
+    this.localMatrix.setPosition(this.pos);
+
+    // update world matrices
     if (this.parentSegment !== null) {
       this.worldMatrix.copy(this.parentSegment.worldMatrix);
     } else {
@@ -55,15 +61,6 @@ class Segment {
     this.meshWorldMatrix.copy(this.worldMatrix).multiply(this.meshLocalMatrix);
 
     instancedMesh.setMatrixAt(i, this.meshWorldMatrix);
-  }
-
-  _updateLocalMatrices() {
-    const t = this.thickness * thicknessScale;
-    this.meshLocalMatrix.makeScale(t, this.length, t);
-
-    this.localMatrix.identity();
-    this.localMatrix.setFromMatrix3(this.rot);
-    this.localMatrix.setPosition(this.pos);
   }
 }
 
