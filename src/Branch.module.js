@@ -111,11 +111,11 @@ class Branch {
   }
 
   _makeLeaves(parentSegment, length) {
-    const n = Math.floor(Math.random() * 10);
+    const n = Math.round(Math.random() * 5 * (1 - this.thickness) / 0.25);
     return Array.from({length: n}).map((_, i) => new Leaf({
       height: i * length / n,
       angle: Math.random() * 2 * Math.PI,
-      distance: Math.random() * 8,
+      distance: Math.random() ** 2 * 0.3,
       parentSegment
     }));
   }

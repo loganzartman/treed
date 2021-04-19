@@ -47,7 +47,7 @@ const onLoad = () => {
   scene.add(
     new THREE.Mesh(
       new THREE.SphereGeometry(100).scale(1, 1, 1),
-      new THREE.MeshBasicMaterial({ color: 0xB2C8DB, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: 0xb2c8db, side: THREE.DoubleSide })
     )
   );
 
@@ -56,50 +56,59 @@ const onLoad = () => {
     new THREE.Mesh(
       new THREE.CircleGeometry(2.5, 15).rotateX(-Math.PI / 2),
       // new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide })
-      new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, color: 0x7C9C75, roughness: 1 })
+      new THREE.MeshStandardMaterial({
+        side: THREE.DoubleSide,
+        color: 0x7c9c75,
+        roughness: 1,
+      })
     )
   );
 
   const sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
   scene.add(sunLight);
-  const groundLight = new THREE.DirectionalLight(0x7C9C75, 0.1);
+  const groundLight = new THREE.DirectionalLight(0x7c9c75, 0.2);
   groundLight.position.y = -1;
   scene.add(groundLight);
-  const ambientLight = new THREE.AmbientLight(0xBFCEDB, 0.02);
+  const ambientLight = new THREE.AmbientLight(0xbfcedb, 0.15);
   scene.add(ambientLight);
 
   // tree segment instances
-  const segmentGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 7, 1, true).translate(
-    0,
+  const segmentGeometry = new THREE.CylinderGeometry(
     0.5,
-    0
-  );
+    0.5,
+    1,
+    7,
+    1,
+    true
+  ).translate(0, 0.5, 0);
   segmentGeometry.computeVertexNormals();
   const segmentMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
-    color: 0xA38F67,
-    roughness: 0.5,
+    color: 0xa38f67,
+    roughness: 1.0,
   });
   const segmentMesh = new THREE.InstancedMesh(
     segmentGeometry,
     segmentMaterial,
     maxSegments
   );
+  segmentMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(segmentMesh);
 
   // leaf instances
-  const leafGeometry = new THREE.CircleGeometry(0.5, 7);
+  const leafGeometry = new THREE.SphereGeometry(0.03, 5, 5);
   leafGeometry.computeVertexNormals();
   const leafMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
     color: 0x536615,
-    roughness: 0.2,
+    roughness: 0.8,
   });
   const leafMesh = new THREE.InstancedMesh(
     leafGeometry,
     leafMaterial,
     maxLeaves
   );
+  leafMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(leafMesh);
 
   let root, branches, segments, leaves;
@@ -129,13 +138,15 @@ const onLoad = () => {
 
     // grow tree
     if (segments.length < maxSegments)
-      branches = branches.flatMap((branch) => branch.grow(segments, leaves, dt));
+      branches = branches.flatMap((branch) =>
+        branch.grow(segments, leaves, dt)
+      );
 
-    segments.forEach((segment, i) => segment.updateTransform(segmentMesh, i));
+    segments.forEach((segment, i) => segment.updateTransform(segmentMesh, i, Date.now()));
     segmentMesh.count = segments.length;
     segmentMesh.instanceMatrix.needsUpdate = true;
 
-    leaves.forEach((leaves, i) => leaves.updateTransform(leafMesh, i));
+    leaves.forEach((leaves, i) => leaves.updateTransform(leafMesh, i, Date.now()));
     leafMesh.count = leaves.length;
     leafMesh.instanceMatrix.needsUpdate = true;
 

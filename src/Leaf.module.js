@@ -1,30 +1,52 @@
 import * as THREE from "../lib/three.js/build/three.module.js";
+import {windVector} from "./util.module.js";
 
 class Leaf {
-  constructor({height, angle, distance, parentSegment}) {
+  constructor({ height, angle, distance, parentSegment }) {
     this.height = height;
     this.angle = angle;
     this.distance = distance;
     this.parentSegment = parentSegment;
 
+    this.worldPos = new THREE.Vector4(0, 0, 0, 1);
+    this.worldVel = new THREE.Vector4(0, 0, 0, 0);
     this.leafAngle = Math.random() * 2 * Math.PI;
-    this.meshLocalRotMatrix = new THREE.Matrix4();
+    this.scale = Math.random() * 0.5 + 0.5;
     this.meshLocalMatrix = new THREE.Matrix4();
     this.meshWorldMatrix = new THREE.Matrix4();
+    this._updateMeshLocalMatrix();
   }
 
-  updateTransform(instancedMesh, i) {
-    this.meshLocalRotMatrix.makeRotationY(this.angle);
-    const position = new THREE.Vector4(this.distance, this.height, 0, 1);
-    position.applyMatrix4(this.meshLocalRotMatrix);
-
-    this.meshLocalMatrix.makeTranslation(position.x, position.y, position.z);
-    this.meshLocalMatrix.multiply(new THREE.Matrix4().makeRotationY(this.leafAngle));
-
-    this.meshWorldMatrix.copy(this.parentSegment.meshWorldMatrix);
+  updateTransform(instancedMesh, i, now) {
+    this.meshWorldMatrix.copy(this.parentSegment.worldMatrix);
     this.meshWorldMatrix.multiply(this.meshLocalMatrix);
-
+    const targetPos = new THREE.Vector4(0, 0, 0, 1).applyMatrix4(
+      this.meshWorldMatrix
+    );
+    const accel = targetPos.sub(this.worldPos).setW(0).multiplyScalar(0.1);
+    this.worldVel.add(accel);
+    this.worldPos.add(this.worldVel);
+    this.worldVel.multiplyScalar(0.9);
+    this.worldVel.add(windVector(now, this.worldPos.x, this.worldPos.y, this.worldPos.z));
+    this.meshWorldMatrix.makeTranslation(
+      this.worldPos.x,
+      this.worldPos.y,
+      this.worldPos.z
+    );
     instancedMesh.setMatrixAt(i, this.meshWorldMatrix);
+  }
+
+  _updateMeshLocalMatrix() {
+    this.meshLocalMatrix.makeRotationY(this.angle);
+    const position = new THREE.Vector4(this.distance, this.height, 0, 1);
+    position.applyMatrix4(this.meshLocalMatrix);
+    this.meshLocalMatrix.setPosition(position.x, position.y, position.z);
+    this.meshLocalMatrix.multiply(
+      new THREE.Matrix4().makeScale(this.scale, this.scale, this.scale)
+    );
+    this.meshLocalMatrix.multiply(
+      new THREE.Matrix4().makeRotationY(this.leafAngle)
+    );
   }
 }
 

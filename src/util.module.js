@@ -17,3 +17,12 @@ export const randomXzVector = () => {
   const angle = Math.random() * Math.PI * 2;
   return new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
 };
+
+export const windVector = (t, x, y, z) => {
+  return new THREE.Vector4(
+    Math.cos(t / 100 + z * 16) * 0.0002 + Math.cos(t / 361 + z) * 0.0005,
+    Math.cos(t / 79 + x * 16) * 0.0002 + Math.cos(t / 334 + x) * 0.0005,
+    Math.cos(t / 86 + y * 16) * 0.0002 + Math.cos(t / 390 + y) * 0.0005,
+    0
+  );
+};
