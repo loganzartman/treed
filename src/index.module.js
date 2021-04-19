@@ -3,13 +3,11 @@ import * as THREE from "../lib/three.js/build/three.module.js";
 import { OrbitControls } from "../lib/three.js/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "../lib/three.js/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPass.js";
-import { SAOPass } from "../lib/three.js/examples/jsm/postprocessing/SAOPass.js";
 import { SSAOPass } from "../lib/three.js/examples/jsm/postprocessing/SSAOPass.js";
-import Segment from "./Segment.module.js";
 import Branch from "./Branch.module.js";
 
 const maxSegments = 10000;
-const maxLeaves = 10000;
+const maxLeaves = 20000;
 const gui = new Dat.GUI();
 let scene;
 let renderer;
@@ -18,7 +16,7 @@ let composer;
 
 const onLoad = () => {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xcccccc);
+  scene.background = new THREE.Color(0xb2c8db);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -27,7 +25,7 @@ const onLoad = () => {
   document.body.appendChild(renderer.domElement);
 
   camera = new THREE.PerspectiveCamera(
-    50,
+    40,
     window.innerWidth / window.innerHeight,
     0.1,
     1000
@@ -37,19 +35,22 @@ const onLoad = () => {
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
+  const ssaoPass = new SSAOPass(
+    scene,
+    camera,
+    window.innerWidth,
+    window.innerHeight
+  );
+  ssaoPass.kernelRadius = 1.4;
+  ssaoPass.minDistance = 0.0002;
+  ssaoPass.maxDistance = 0.0015;
+  composer.addPass(ssaoPass);
+
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.1;
   controls.enablePan = false;
-
-  // skybox
-  scene.add(
-    new THREE.Mesh(
-      new THREE.SphereGeometry(100).scale(1, 1, 1),
-      new THREE.MeshBasicMaterial({ color: 0xb2c8db, side: THREE.DoubleSide })
-    )
-  );
 
   // floor
   scene.add(
@@ -58,7 +59,7 @@ const onLoad = () => {
       // new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide })
       new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
-        color: 0x7c9c75,
+        color: 0x999999,
         roughness: 1,
       })
     )
@@ -69,7 +70,7 @@ const onLoad = () => {
   const groundLight = new THREE.DirectionalLight(0x7c9c75, 0.2);
   groundLight.position.y = -1;
   scene.add(groundLight);
-  const ambientLight = new THREE.AmbientLight(0xbfcedb, 0.15);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(ambientLight);
 
   // tree segment instances
@@ -100,8 +101,8 @@ const onLoad = () => {
   leafGeometry.computeVertexNormals();
   const leafMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
-    color: 0x536615,
-    roughness: 0.8,
+    color: 0x94A364,
+    roughness: 1.0,
   });
   const leafMesh = new THREE.InstancedMesh(
     leafGeometry,
@@ -142,11 +143,15 @@ const onLoad = () => {
         branch.grow(segments, leaves, dt)
       );
 
-    segments.forEach((segment, i) => segment.updateTransform(segmentMesh, i, Date.now()));
+    segments.forEach((segment, i) =>
+      segment.updateTransform(segmentMesh, i, Date.now())
+    );
     segmentMesh.count = segments.length;
     segmentMesh.instanceMatrix.needsUpdate = true;
 
-    leaves.forEach((leaves, i) => leaves.updateTransform(leafMesh, i, Date.now()));
+    leaves.forEach((leaves, i) =>
+      leaves.updateTransform(leafMesh, i, Date.now())
+    );
     leafMesh.count = leaves.length;
     leafMesh.instanceMatrix.needsUpdate = true;
 

@@ -92,7 +92,7 @@ class Branch {
 
   _wiggle() {
     const axis = randomXzVector();
-    const angle = (Math.random() * 2 - 1) * 0.1;
+    const angle = (Math.random() * 2 - 1) * 0.5 * (1 - this.thickness);
     const rot = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationAxis(axis, angle));
     this.rot.multiply(rot);
   }
@@ -111,7 +111,7 @@ class Branch {
   }
 
   _makeLeaves(parentSegment, length) {
-    const n = Math.round(Math.random() * 5 * (1 - this.thickness) / 0.25);
+    const n = Math.round(Math.random() * 3 * (1 - this.thickness) / 0.25);
     return Array.from({length: n}).map((_, i) => new Leaf({
       height: i * length / n,
       angle: Math.random() * 2 * Math.PI,
