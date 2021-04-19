@@ -8,6 +8,7 @@ import { SSAOPass } from "../lib/three.js/examples/jsm/postprocessing/SSAOPass.j
 import Segment from "./Segment.module.js";
 import Branch from "./Branch.module.js";
 
+const maxSegments = 2000;
 const epsilon = 1e-3;
 const gui = new Dat.GUI();
 let scene;
@@ -60,20 +61,20 @@ const onLoad = () => {
     )
   );
 
-  // box
-  // scene.add(
-  //   new THREE.Mesh(
-  //     new THREE.BoxGeometry(),
-  //     // new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide })
-  //     new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
-  //   ).translateY(0.5 + epsilon)
-  // );
+  // tree segment instances
+  const segmentGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 7).translate(
+    0,
+    0.5,
+    0
+  );
+  segmentGeometry.computeVertexNormals();
+  const segmentMaterial = new THREE.MeshNormalMaterial();
+  const segmentMesh = new THREE.InstancedMesh(segmentGeometry, segmentMaterial, maxSegments);
+  scene.add(segmentMesh);
 
   let root, branches, segments;
   const reset = () => {
-    if (root) scene.remove(root.parentObject);
     root = new Branch({ scene });
-    scene.add(root.parentObject);
     branches = [root];
     segments = [];
   };
@@ -96,15 +97,19 @@ const onLoad = () => {
     prevTime = Date.now();
 
     // grow tree
-    if (segments.length < 2000)
+    if (segments.length < maxSegments)
       branches = branches.flatMap((branch) => branch.grow(segments, dt));
+
+    segments.forEach((segment, i) => segment.updateTransform(segmentMesh, i));
+    segmentMesh.count = segments.length;
+    segmentMesh.instanceMatrix.needsUpdate = true;
 
     const cameraTargetY =
       segments.reduce(
         (acc, segment) =>
           Math.max(
             acc,
-            new THREE.Vector3().setFromMatrixPosition(segment.mesh.matrixWorld)
+            new THREE.Vector3().setFromMatrixPosition(segment.meshWorldMatrix)
               .y
           ),
         0
