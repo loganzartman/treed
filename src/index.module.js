@@ -65,9 +65,8 @@ const onLoad = () => {
   sunLight.shadow.camera.right = floorRadius*2;
   sunLight.shadow.camera.top = -floorRadius*2;
   sunLight.shadow.camera.bottom = floorRadius*2;
-
-  // sunLight.shadow.mapSize.width = 1024;
-  // sunLight.shadow.mapSize.height = 1024;
+  sunLight.shadow.mapSize.width = 256;
+  sunLight.shadow.mapSize.height = 256;
   // sunLight.shadow.camera.far = 20;
 
   const groundLight = new THREE.DirectionalLight(0x7c9c75, 0.2);
