@@ -59,7 +59,7 @@ const onLoad = () => {
 
   const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
   scene.add(sunLight);
-  sunLight.position.set(0, 10, 0);
+  sunLight.position.set(5, 10, 0);
   sunLight.castShadow = true;
   sunLight.shadow.camera.left = -floorRadius*2;
   sunLight.shadow.camera.right = floorRadius*2;
@@ -69,7 +69,7 @@ const onLoad = () => {
   sunLight.shadow.mapSize.height = 256;
   // sunLight.shadow.camera.far = 20;
 
-  const groundLight = new THREE.DirectionalLight(0x7c9c75, 0.2);
+  const groundLight = new THREE.DirectionalLight(0xffffff, 0.1);
   groundLight.position.y = -1;
   scene.add(groundLight);
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
