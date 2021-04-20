@@ -14,16 +14,17 @@ class Leaf {
     this.scale = Math.random() * 0.5 + 0.5;
     this.meshLocalMatrix = new THREE.Matrix4();
     this.meshWorldMatrix = new THREE.Matrix4();
+    this.targetPos = new THREE.Vector4();
     this._updateMeshLocalMatrix();
   }
 
   updateTransform(instancedMesh, i, now) {
     this.meshWorldMatrix.copy(this.parentSegment.worldMatrix);
     this.meshWorldMatrix.multiply(this.meshLocalMatrix);
-    const targetPos = new THREE.Vector4(0, 0, 0, 1).applyMatrix4(
+    this.targetPos.set(0, 0, 0, 1).applyMatrix4(
       this.meshWorldMatrix
     );
-    const accel = targetPos.sub(this.worldPos).setW(0).multiplyScalar(0.1);
+    const accel = this.targetPos.sub(this.worldPos).setW(0).multiplyScalar(0.1);
     this.worldVel.add(accel);
     this.worldPos.add(this.worldVel);
     this.worldVel.multiplyScalar(0.9);
