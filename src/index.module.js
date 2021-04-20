@@ -4,6 +4,7 @@ import { OrbitControls } from "../lib/three.js/examples/jsm/controls/OrbitContro
 import { EffectComposer } from "../lib/three.js/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPass.js";
 import Branch from "./Branch.module.js";
+import {monkeypatchPcss} from "./pcss.module.js";
 
 const maxSegments = 10000;
 const maxLeaves = 20000;
@@ -22,6 +23,7 @@ const onLoad = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = true;
+  monkeypatchPcss(THREE);
   document.body.appendChild(renderer.domElement);
 
   camera = new THREE.PerspectiveCamera(
@@ -59,10 +61,10 @@ const onLoad = () => {
   scene.add(sunLight);
   sunLight.position.set(0, 10, 0);
   sunLight.castShadow = true;
-  sunLight.shadow.camera.left = -floorRadius;
-  sunLight.shadow.camera.right = floorRadius;
-  sunLight.shadow.camera.top = -floorRadius;
-  sunLight.shadow.camera.bottom = floorRadius;
+  sunLight.shadow.camera.left = -floorRadius*2;
+  sunLight.shadow.camera.right = floorRadius*2;
+  sunLight.shadow.camera.top = -floorRadius*2;
+  sunLight.shadow.camera.bottom = floorRadius*2;
 
   // sunLight.shadow.mapSize.width = 1024;
   // sunLight.shadow.mapSize.height = 1024;
@@ -71,7 +73,7 @@ const onLoad = () => {
   const groundLight = new THREE.DirectionalLight(0x7c9c75, 0.2);
   groundLight.position.y = -1;
   scene.add(groundLight);
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
   scene.add(ambientLight);
 
   // tree segment instances
