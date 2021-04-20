@@ -93,7 +93,7 @@ const onLoad = () => {
   const segmentMesh = new THREE.InstancedMesh(
     segmentGeometry,
     segmentMaterial,
-    maxSegments
+    maxSegments * 2
   );
   segmentMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   segmentMesh.castShadow = true;
@@ -111,7 +111,7 @@ const onLoad = () => {
   const leafMesh = new THREE.InstancedMesh(
     leafGeometry,
     leafMaterial,
-    maxLeaves
+    maxLeaves * 2
   );
   leafMesh.castShadow = true;
   leafMesh.receiveShadow = true;
