@@ -3,7 +3,6 @@ import * as THREE from "../lib/three.js/build/three.module.js";
 import { OrbitControls } from "../lib/three.js/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "../lib/three.js/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPass.js";
-import { SSAOPass } from "../lib/three.js/examples/jsm/postprocessing/SSAOPass.js";
 import Branch from "./Branch.module.js";
 
 const maxSegments = 10000;
@@ -22,6 +21,7 @@ const onLoad = () => {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
   document.body.appendChild(renderer.domElement);
 
   camera = new THREE.PerspectiveCamera(
@@ -35,17 +35,6 @@ const onLoad = () => {
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
-  const ssaoPass = new SSAOPass(
-    scene,
-    camera,
-    window.innerWidth,
-    window.innerHeight
-  );
-  ssaoPass.kernelRadius = 1.4;
-  ssaoPass.minDistance = 0.0002;
-  ssaoPass.maxDistance = 0.0015;
-  composer.addPass(ssaoPass);
-
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
   controls.enableDamping = true;
@@ -53,24 +42,36 @@ const onLoad = () => {
   controls.enablePan = false;
 
   // floor
-  scene.add(
-    new THREE.Mesh(
-      new THREE.CircleGeometry(2.5, 15).rotateX(-Math.PI / 2),
-      // new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide })
-      new THREE.MeshStandardMaterial({
-        side: THREE.DoubleSide,
-        color: 0x999999,
-        roughness: 1,
-      })
-    )
+  const floorRadius = 2.5;
+  const floorMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(floorRadius, floorRadius, 0.1, 16).translate(0, -0.05, 0),
+    // new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide })
+    new THREE.MeshStandardMaterial({
+      side: THREE.DoubleSide,
+      color: 0x999999,
+      roughness: 1,
+    })
   );
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh);
 
-  const sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
   scene.add(sunLight);
+  sunLight.position.set(0, 10, 0);
+  sunLight.castShadow = true;
+  sunLight.shadow.camera.left = -floorRadius;
+  sunLight.shadow.camera.right = floorRadius;
+  sunLight.shadow.camera.top = -floorRadius;
+  sunLight.shadow.camera.bottom = floorRadius;
+
+  // sunLight.shadow.mapSize.width = 1024;
+  // sunLight.shadow.mapSize.height = 1024;
+  // sunLight.shadow.camera.far = 20;
+
   const groundLight = new THREE.DirectionalLight(0x7c9c75, 0.2);
   groundLight.position.y = -1;
   scene.add(groundLight);
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
   // tree segment instances
@@ -94,6 +95,8 @@ const onLoad = () => {
     maxSegments
   );
   segmentMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  segmentMesh.castShadow = true;
+  segmentMesh.receiveShadow = true;
   scene.add(segmentMesh);
 
   // leaf instances
@@ -101,7 +104,7 @@ const onLoad = () => {
   leafGeometry.computeVertexNormals();
   const leafMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
-    color: 0x94A364,
+    color: 0x94a364,
     roughness: 1.0,
   });
   const leafMesh = new THREE.InstancedMesh(
@@ -109,6 +112,8 @@ const onLoad = () => {
     leafMaterial,
     maxLeaves
   );
+  leafMesh.castShadow = true;
+  leafMesh.receiveShadow = true;
   leafMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(leafMesh);
 
