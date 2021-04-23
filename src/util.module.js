@@ -26,3 +26,21 @@ export const windVector = (t, x, y, z) => {
     0
   );
 };
+
+export const makeLeafSprite = (w, h, wideness) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+
+  ctx.scale(w * 0.5, h * 0.5);
+  ctx.translate(1, 1);
+  ctx.moveTo(0, -1);
+  ctx.quadraticCurveTo(wideness, 0, 0, 1);
+  ctx.quadraticCurveTo(-wideness, 0, 0, -1);
+  ctx.closePath();
+  ctx.fillStyle = "white";
+  ctx.fill();
+
+  return ctx.getImageData(0, 0, w, h);
+};
