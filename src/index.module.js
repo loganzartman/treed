@@ -5,7 +5,6 @@ import { EffectComposer } from "../lib/three.js/examples/jsm/postprocessing/Effe
 import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPass.js";
 import Branch from "./Branch.module.js";
 import { monkeypatchPcss } from "./pcss.module.js";
-import { makeLeafSprite } from "./util.module.js";
 
 const maxSegments = 10000;
 const maxLeaves = 20000;
@@ -113,26 +112,22 @@ const onLoad = () => {
   scene.add(segmentMesh);
 
   // leaf instances
-  const leafGeometry = new THREE.BufferGeometry();
-  const leafPositions = new THREE.BufferAttribute(new Float32Array(maxLeaves * 2 * 3), 3);
-  for (let i = 0; i < maxLeaves*3; ++i) {
-    leafPositions.array[i] = Math.random();
-  }
-  leafPositions.setUsage(THREE.DynamicDrawUsage);
-  leafGeometry.setAttribute('position', leafPositions);
-  const leafTexture = new THREE.Texture(makeLeafSprite(64, 64, 1));
-  leafTexture.needsUpdate = true;
-  const leafMaterial = new THREE.PointsMaterial({
-    size: 0.2,
-    sizeAttenuation: true,
-    map: leafTexture,
+  const leafGeometry = new THREE.SphereGeometry(0.03, 5, 5);
+  leafGeometry.computeVertexNormals();
+  const leafMaterial = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
     color: 0x94a364,
-    transparent: true,
+    roughness: 1.0,
   });
-  const leafPoints = new THREE.Points(leafGeometry, leafMaterial);
-  leafPoints.castShadow = true;
-  leafPoints.receiveShadow = true;
-  scene.add(leafPoints);
+  const leafMesh = new THREE.InstancedMesh(
+    leafGeometry,
+    leafMaterial,
+    maxLeaves * 2
+  );
+  leafMesh.castShadow = true;
+  leafMesh.receiveShadow = true;
+  leafMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  scene.add(leafMesh);
 
   let root, branches, segments, leaves;
   const reset = () => {
@@ -171,12 +166,11 @@ const onLoad = () => {
     segmentMesh.count = segments.length;
     segmentMesh.instanceMatrix.needsUpdate = true;
 
-    leaves.forEach((leaves, i) => 
-      leaves.updateTransform(leafPositions.array, i, Date.now())
+    leaves.forEach((leaves, i) =>
+      leaves.updateTransform(leafMesh, i, Date.now())
     );
-    leafPositions.needsUpdate = true;
-    // leafMesh.count = leaves.length;
-    // leafMesh.instanceMatrix.needsUpdate = true;
+    leafMesh.count = leaves.length;
+    leafMesh.instanceMatrix.needsUpdate = true;
 
     const cameraTargetY =
       segments.reduce(

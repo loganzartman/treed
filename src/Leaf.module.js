@@ -18,7 +18,7 @@ class Leaf {
     this._updateMeshLocalMatrix();
   }
 
-  updateTransform(positions, i, now) {
+  updateTransform(instancedMesh, i, now) {
     this.meshWorldMatrix.copy(this.parentSegment.worldMatrix);
     this.meshWorldMatrix.multiply(this.meshLocalMatrix);
     this.targetPos.set(0, 0, 0, 1).applyMatrix4(
@@ -29,9 +29,12 @@ class Leaf {
     this.worldPos.add(this.worldVel);
     this.worldVel.multiplyScalar(0.9);
     this.worldVel.add(windVector(now, this.worldPos.x, this.worldPos.y, this.worldPos.z));
-    positions[i * 3 + 0] = this.worldPos.x;
-    positions[i * 3 + 1] = this.worldPos.y;
-    positions[i * 3 + 2] = this.worldPos.z;
+    this.meshWorldMatrix.makeTranslation(
+      this.worldPos.x,
+      this.worldPos.y,
+      this.worldPos.z
+    );
+    instancedMesh.setMatrixAt(i, this.meshWorldMatrix);
   }
 
   _updateMeshLocalMatrix() {
