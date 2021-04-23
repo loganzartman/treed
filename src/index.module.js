@@ -4,7 +4,7 @@ import { OrbitControls } from "../lib/three.js/examples/jsm/controls/OrbitContro
 import { EffectComposer } from "../lib/three.js/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPass.js";
 import Branch from "./Branch.module.js";
-import {monkeypatchPcss} from "./pcss.module.js";
+import { monkeypatchPcss } from "./pcss.module.js";
 
 const maxSegments = 10000;
 const maxLeaves = 20000;
@@ -46,7 +46,11 @@ const onLoad = () => {
   // floor
   const floorRadius = 2.5;
   const floorMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(floorRadius, floorRadius, 0.1, 16).translate(0, -0.05, 0),
+    new THREE.CylinderGeometry(floorRadius, floorRadius, 0.1, 16).translate(
+      0,
+      -0.05,
+      0
+    ),
     // new THREE.MeshBasicMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide })
     new THREE.MeshStandardMaterial({
       side: THREE.DoubleSide,
@@ -59,12 +63,12 @@ const onLoad = () => {
 
   const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
   scene.add(sunLight);
-  sunLight.position.set(5, 10, 0);
+  sunLight.position.set(0, 10, 0);
   sunLight.castShadow = true;
-  sunLight.shadow.camera.left = -floorRadius*2;
-  sunLight.shadow.camera.right = floorRadius*2;
-  sunLight.shadow.camera.top = -floorRadius*2;
-  sunLight.shadow.camera.bottom = floorRadius*2;
+  sunLight.shadow.camera.left = -floorRadius * 2;
+  sunLight.shadow.camera.right = floorRadius * 2;
+  sunLight.shadow.camera.top = -floorRadius * 2;
+  sunLight.shadow.camera.bottom = floorRadius * 2;
   sunLight.shadow.mapSize.width = 256;
   sunLight.shadow.mapSize.height = 256;
   // sunLight.shadow.camera.far = 20;
@@ -72,6 +76,13 @@ const onLoad = () => {
   const groundLight = new THREE.DirectionalLight(0xffffff, 0.1);
   groundLight.position.y = -1;
   scene.add(groundLight);
+  groundLight.castShadow = true;
+  groundLight.shadow.camera.left = -floorRadius * 2;
+  groundLight.shadow.camera.right = floorRadius * 2;
+  groundLight.shadow.camera.top = -floorRadius * 2;
+  groundLight.shadow.camera.bottom = floorRadius * 2;
+  groundLight.shadow.mapSize.width = 256;
+  groundLight.shadow.mapSize.height = 256;
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
   scene.add(ambientLight);
 
