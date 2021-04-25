@@ -9,16 +9,16 @@ import { monkeypatchPcss } from "./pcss.module.js";
 const maxSegments = 10000;
 const maxLeaves = 20000;
 const gui = new Dat.GUI();
-let scene;
-let renderer;
-let camera;
-let composer;
+
+const globals = {
+  running: true,
+};
 
 const onLoad = () => {
-  scene = new THREE.Scene();
+  const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xb2c8db);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
@@ -26,7 +26,7 @@ const onLoad = () => {
   monkeypatchPcss(THREE);
   document.body.appendChild(renderer.domElement);
 
-  camera = new THREE.PerspectiveCamera(
+  const camera = new THREE.PerspectiveCamera(
     40,
     window.innerWidth / window.innerHeight,
     0.1,
@@ -34,7 +34,7 @@ const onLoad = () => {
   );
   camera.position.set(10, 7, 0);
 
-  composer = new EffectComposer(renderer);
+  const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -151,42 +151,49 @@ const onLoad = () => {
   let prevTime = Date.now();
   const frame = () => {
     window.requestAnimationFrame(frame);
-    const dt = ((Date.now() - prevTime) / 1000) * 3;
-    prevTime = Date.now();
 
-    // grow tree
-    if (segments.length < maxSegments)
-      branches = branches.flatMap((branch) =>
-        branch.grow(segments, leaves, dt)
+    if (globals.running) {
+      const dt = ((Date.now() - prevTime) / 1000) * 3;
+      prevTime = Date.now();
+
+      // grow tree
+      if (segments.length < maxSegments)
+        branches = branches.flatMap((branch) =>
+          branch.grow(segments, leaves, 0.1)
+        );
+
+      segments.forEach((segment, i) =>
+        segment.updateTransform(segmentMesh, i, Date.now())
       );
+      segmentMesh.count = segments.length;
+      segmentMesh.instanceMatrix.needsUpdate = true;
 
-    segments.forEach((segment, i) =>
-      segment.updateTransform(segmentMesh, i, Date.now())
-    );
-    segmentMesh.count = segments.length;
-    segmentMesh.instanceMatrix.needsUpdate = true;
+      leaves.forEach((leaves, i) =>
+        leaves.updateTransform(leafMesh, i, Date.now())
+      );
+      leafMesh.count = leaves.length;
+      leafMesh.instanceMatrix.needsUpdate = true;
 
-    leaves.forEach((leaves, i) =>
-      leaves.updateTransform(leafMesh, i, Date.now())
-    );
-    leafMesh.count = leaves.length;
-    leafMesh.instanceMatrix.needsUpdate = true;
-
-    const cameraTargetY =
-      segments.reduce(
-        (acc, segment) =>
-          Math.max(
-            acc,
-            new THREE.Vector3().setFromMatrixPosition(segment.meshWorldMatrix).y
-          ),
-        0
-      ) / 2;
-    controls.target.y = controls.target.y * 0.9 + cameraTargetY * 0.1;
+      const cameraTargetY =
+        segments.reduce(
+          (acc, segment) =>
+            Math.max(
+              acc,
+              new THREE.Vector3().setFromMatrixPosition(segment.meshWorldMatrix)
+                .y
+            ),
+          0
+        ) / 2;
+      controls.target.y = controls.target.y * 0.9 + cameraTargetY * 0.1;
+    }
 
     controls.update();
     composer.render();
   };
   window.requestAnimationFrame(frame);
+
+  gui.add({ reset }, "reset");
+  gui.add(globals, "running");
 };
 
 const onResize = () => {

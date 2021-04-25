@@ -52,11 +52,11 @@ class Branch {
     const dx = new THREE.Vector3(0, 1, 0).applyMatrix3(this.rot);
     this.pos.addScaledVector(dx, dt);
 
-    if (Math.random() < 0.05 + (1 - this.thickness) * 0.02) {
+    if (Math.random() < (1.0 + (1 - this.thickness) * 0.4) * dt) {
       branches.push(this._createBranch());
     }
 
-    this._wiggle();
+    this._wiggle(dt);
 
     const distance = Math.sqrt(
       (this.lastStrokePos.x - this.pos.x) ** 2 +
@@ -90,9 +90,9 @@ class Branch {
     });
   }
 
-  _wiggle() {
+  _wiggle(dt) {
     const axis = randomXzVector();
-    const angle = (Math.random() * 2 - 1) * 0.5 * (1 - this.thickness);
+    const angle = (Math.random() * 2 - 1) * 5 * (1 - this.thickness) * dt;
     const rot = new THREE.Matrix3().setFromMatrix4(new THREE.Matrix4().makeRotationAxis(axis, angle));
     this.rot.multiply(rot);
   }
