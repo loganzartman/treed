@@ -5,6 +5,7 @@ import { EffectComposer } from "../lib/three.js/examples/jsm/postprocessing/Effe
 import { RenderPass } from "../lib/three.js/examples/jsm/postprocessing/RenderPass.js";
 import Branch from "./Branch.module.js";
 import { monkeypatchPcss } from "./pcss.module.js";
+import { makeLeafGeometry } from "./Leaf.module.js";
 
 const maxSegments = 10000;
 const maxLeaves = 20000;
@@ -112,11 +113,12 @@ const onLoad = () => {
   scene.add(segmentMesh);
 
   // leaf instances
-  const leafGeometry = new THREE.SphereGeometry(0.03, 5, 5);
+  // const leafGeometry = new THREE.SphereGeometry(0.03, 5, 5);
+  const leafGeometry = makeLeafGeometry();
   leafGeometry.computeVertexNormals();
   const leafMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide,
-    color: 0x94a364,
+    color: 0x758c1f,
     roughness: 1.0,
   });
   const leafMesh = new THREE.InstancedMesh(
@@ -157,22 +159,21 @@ const onLoad = () => {
       prevTime = Date.now();
 
       // grow tree
-      if (segments.length < maxSegments)
+      if (segments.length < maxSegments && branches.length > 0) {
         branches = branches.flatMap((branch) =>
           branch.grow(segments, leaves, 0.1)
         );
 
-      segments.forEach((segment, i) =>
-        segment.updateTransform(segmentMesh, i, Date.now())
-      );
-      segmentMesh.count = segments.length;
-      segmentMesh.instanceMatrix.needsUpdate = true;
+        segments.forEach((segment, i) =>
+          segment.updateTransform(segmentMesh, i)
+        );
+        segmentMesh.count = segments.length;
+        segmentMesh.instanceMatrix.needsUpdate = true;
 
-      leaves.forEach((leaves, i) =>
-        leaves.updateTransform(leafMesh, i, Date.now())
-      );
-      leafMesh.count = leaves.length;
-      leafMesh.instanceMatrix.needsUpdate = true;
+        leaves.forEach((leaves, i) => leaves.updateTransform(leafMesh, i));
+        leafMesh.count = leaves.length;
+        leafMesh.instanceMatrix.needsUpdate = true;
+      }
 
       const cameraTargetY =
         segments.reduce(

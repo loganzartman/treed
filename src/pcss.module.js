@@ -3,13 +3,15 @@
 
 // TLDR: set up shadow maps normally, then monkeypatchPcss(THREE) 
 
-const shaderPcss = `
-#define LIGHT_WORLD_SIZE 0.001
+import {glsl} from "./glsl.module.js";
+
+const shaderPcss = glsl`
+#define LIGHT_WORLD_SIZE 0.003
 #define LIGHT_FRUSTUM_WIDTH 3.75
 #define LIGHT_SIZE_UV (LIGHT_WORLD_SIZE / LIGHT_FRUSTUM_WIDTH)
 #define NEAR_PLANE 3.5
 
-#define NUM_SAMPLES 4
+#define NUM_SAMPLES 8
 #define NUM_RINGS 7
 #define BLOCKER_SEARCH_NUM_SAMPLES NUM_SAMPLES
 #define PCF_NUM_SAMPLES NUM_SAMPLES
@@ -90,7 +92,7 @@ float PCSS ( sampler2D shadowMap, vec4 coords ) {
 }
 `;
 
-const shaderPcssGetShadow = `
+const shaderPcssGetShadow = glsl`
 return PCSS( shadowMap, shadowCoord );
 `;
 

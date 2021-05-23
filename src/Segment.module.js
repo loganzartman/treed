@@ -41,7 +41,7 @@ class Segment {
 
   destroy() {}
 
-  updateTransform(instancedMesh, i, now) {
+  updateTransform(instancedMesh, i) {
     // update local matrices
     const t = this.thickness * thicknessScale;
     this.meshLocalMatrix.makeScale(t, this.length, t);
